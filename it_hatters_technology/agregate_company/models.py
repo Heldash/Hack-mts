@@ -31,7 +31,7 @@ class Employee(models.Model):
     role = models.CharField(max_length=64,default=None,null=True)
     position = models.CharField(max_length=64,default=None,null=True)
     status = models.ForeignKey(Status,on_delete=models.SET_NULL,null=True,default=None)
-    path = models.FilePathField()
+    path = models.CharField(max_length=240)
     about = models.TextField(null=True)
     work_project = models.ForeignKey(Project,on_delete=models.SET_NULL,null=True,default=None)
     location = models.ForeignKey(Cityes,on_delete=models.SET_NULL,null=True,default=None)

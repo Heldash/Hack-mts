@@ -1,8 +1,14 @@
+import json
+
 from django.shortcuts import render
 from django.http import HttpResponse
+from rest_framework.response import Response
+from rest_framework.request import Request
+from rest_framework.views import APIView,status
+from drf_spectacular.utils import extend_schema
 from .models import Employee,Node,Cityes
+from .serializers import EmployeeSerializer,NodeSerializer,CitySerializer,EmployeeSerializerAll
 import csv
-import os
 
 def add_test_database(request):
     nodes = {}
@@ -55,5 +61,28 @@ def add_test_database(request):
     return HttpResponse("succes")
 
 
-if __name__ == '__main__':
-    add_test_database()
+class AllUsers(APIView):
+    @extend_schema(summary="Получить всех сотрудников",
+                   description="Вместе с сотрудниками на выходе получаешь id локаций и номера узлов дерева"
+                   )
+    def get(self,request):
+        users = EmployeeSerializer(Employee.objects.select_related("location","location").all(),many=True)
+        nodes = NodeSerializer(Node.objects.all(),many=True)
+        cityes = CitySerializer(Cityes.objects.all(),many=True)
+        print(users.data)
+        print(nodes.data)
+        return Response({"employers":users.data,
+                         "nodes_id":nodes.data,
+                         "city_id":cityes.data})
+        # cityes = Node.objects.all()
+class GetUserById(APIView):
+    def get(self,request,user_id):
+        try:
+            worker = Employee.objects.get(id=user_id)
+        except Employee.DoesNotExist:
+            return Response("Error",status=status.HTTP_404_NOT_FOUND)
+        worker = EmployeeSerializerAll(worker)
+        return Response(worker,status=status.HTTP_200_OK)
+class EditUserFName(APIView):
+    def post(self,request:Request):
+        id = request.POST.get("id",None)
